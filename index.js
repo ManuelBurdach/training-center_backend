@@ -1,7 +1,7 @@
 // --------------------------------------------------- IMPORTS
 import express from "express";
 import cors from "cors";
-import "./config/config.js";
+// import "./config/config.js";
 import morgan from "morgan";
 import { body, validationResult } from "express-validator";
 
