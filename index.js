@@ -7,8 +7,7 @@ import { body, validationResult } from "express-validator";
 
 // --------------------------------------------------- CONSTS
 const PORT = process.env.PORT || 10000;
-/* in RENDER.com : import.meta.env.VITE_BASELINK || */
-const BASELINK = process.env.VITE_BASELINK + PORT || "http://localhost:" + PORT;
+const FRONTEND_LINK = process.env.FRONTEND_LINK || "http://localhost:5173";
 
 const DBstatic = {
   priceProHuman: 1500,
@@ -27,7 +26,7 @@ const app = express();
 
 // --------------------------------------------------- MIDDLEWARE
 app.use(morgan("dev"));
-app.use(cors({ origin: BASELINK }));
+app.use(cors({ origin: FRONTEND_LINK }));
 app.use(express.json());
 
 // --------------------------------------------------- GET account
@@ -36,28 +35,32 @@ app.get("/api/v1/account", (req, res) => {
 });
 
 // --------------------------------------------------- PUT humans
-app.put("/api/v1/humans", body("humans").isLength({ min: 1, max: 2 }).isNumeric(), (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.json([{ err: errors.array(), ...DBvariable }]);
+app.put(
+  "/api/v1/addHumans",
+  body("humans").isLength({ min: 1, max: 2 }).isNumeric(),
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.json([{ err: errors.array(), ...DBvariable }]);
+    }
+
+    const humans = Number(req.body.humans);
+    if (DBstatic.capacity < DBvariable.humansCounter + humans) {
+      return res.json({ err: true, ...DBvariable });
+    }
+
+    const timestamp = new Date().getTime();
+    const newHumans = {
+      manyHumans: humans,
+      timestamp: timestamp,
+    };
+
+    DBvariable.humansCounter += humans;
+    DBvariable.humansHistory.push(newHumans);
+
+    res.json({ err: false, ...DBvariable });
   }
-
-  const humans = Number(req.body.humans);
-  if (DBstatic.capacity < DBvariable.humansCounter + humans) {
-    return res.json({ err: true, ...DBvariable });
-  }
-
-  const timestamp = new Date().getTime();
-  const newHumans = {
-    manyHumans: humans,
-    timestamp: timestamp,
-  };
-
-  DBvariable.humansCounter += humans;
-  DBvariable.humansHistory.push(newHumans);
-
-  res.json({ err: false, ...DBvariable });
-});
+);
 
 // --------------------------------------------------- PUT sellHumans
 app.put("/api/v1/sellHumans", (req, res) => {
