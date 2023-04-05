@@ -26,7 +26,7 @@ const app = express();
 
 // --------------------------------------------------- MIDDLEWARE
 app.use(morgan("dev"));
-app.use(cors({ origin: FRONTEND_LINK }));
+app.use(cors()); // { origin: FRONTEND_LINK }
 app.use(express.json());
 
 // --------------------------------------------------- GET account
